@@ -1,0 +1,7 @@
+# Next.js static export on Apache/cPanel.
+#
+# Routing needs no rules here: `trailingSlash: true` emits an index.html inside
+# every route folder, which Apache's default DirectoryIndex already serves.
+# This file only wires up the styled 404 page.
+
+ErrorDocument 404 /404.html

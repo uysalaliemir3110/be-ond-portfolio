@@ -1,0 +1,62 @@
+[
+  {
+    "id": "carousel-1789501027262",
+    "type": "image",
+    "src": "/carousel/carousel-1789501027262.webp",
+    "alt": "",
+    "tagline": {
+      "tr": "",
+      "en": ""
+    },
+    "subTagline": {
+      "tr": "",
+      "en": ""
+    },
+    "duration": 7
+  },
+  {
+    "id": "carousel-1789501027629",
+    "type": "image",
+    "src": "/carousel/carousel-1789501027629.webp",
+    "alt": "",
+    "tagline": {
+      "tr": "",
+      "en": ""
+    },
+    "subTagline": {
+      "tr": "",
+      "en": ""
+    },
+    "duration": 7
+  },
+  {
+    "id": "carousel-1789501028063",
+    "type": "image",
+    "src": "/carousel/carousel-1789501028063.webp",
+    "alt": "",
+    "tagline": {
+      "tr": "",
+      "en": ""
+    },
+    "subTagline": {
+      "tr": "",
+      "en": ""
+    },
+    "duration": 7
+  },
+  {
+    "id": "carousel-1789501028512",
+    "type": "image",
+    "src": "/carousel/carousel-1789501028512.webp",
+    "alt": "",
+    "tagline": {
+      "tr": "",
+      "en": ""
+    },
+    "subTagline": {
+      "tr": "",
+      "en": ""
+    },
+    "duration": 7
+  }
+]
