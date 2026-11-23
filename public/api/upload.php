@@ -65,6 +65,19 @@ if ($folder === '' || strpos($folder, '..') !== false || !preg_match('#^[a-zA-Z0
     echo json_encode(['error' => 'Geçersiz klasör']);
     exit;
 }
+// delete.php ile aynı izin listesi: panel yalnızca kendi medya klasörlerine yazabilir.
+$allowedFolder = false;
+foreach (['images/archive/', 'carousel/', 'about/'] as $prefix) {
+    if (strncmp($folder . '/', $prefix, strlen($prefix)) === 0) {
+        $allowedFolder = true;
+        break;
+    }
+}
+if (!$allowedFolder) {
+    http_response_code(403);
+    echo json_encode(['error' => 'Bu klasöre yükleme yetkisi yok']);
+    exit;
+}
 
 // Dosya adı ve uzantı güvenliği
 $origName = isset($_POST['filename']) ? $_POST['filename'] : $file['name'];
@@ -76,7 +89,21 @@ if (!in_array($ext, $allowedExt, true)) {
     exit;
 }
 
+// Uzantıya değil içeriğe bak: ".jpg" adıyla yüklenen bir betik/metin dosyası reddedilir.
 $imageExts = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif'];
+$mime = function_exists('mime_content_type') ? (string) mime_content_type($file['tmp_name']) : '';
+$isImageExt = in_array($ext, $imageExts, true);
+if ($mime !== '' && $isImageExt && strpos($mime, 'image/') !== 0) {
+    http_response_code(400);
+    echo json_encode(['error' => 'Dosya içeriği bir görsel değil']);
+    exit;
+}
+if ($mime !== '' && !$isImageExt && strpos($mime, 'video/') !== 0 && $mime !== 'application/octet-stream') {
+    http_response_code(400);
+    echo json_encode(['error' => 'Dosya içeriği bir video değil']);
+    exit;
+}
+
 $convertToWebp = in_array($ext, $imageExts, true) && function_exists('imagewebp');
 
 $base = pathinfo($origName, PATHINFO_FILENAME);
@@ -109,10 +136,16 @@ $quality = $isCover ? 78 : 82;
 
 if ($convertToWebp) {
     $src = imagecreatefromstring(file_get_contents($file['tmp_name']));
-    if ($src === false) {
+    if ($src === false && $ext === 'avif' && strpos($mime, 'image/') === 0) {
+        // Eski PHP sürümleri AVIF'i çözemez; içeriği yukarıda görsel olarak doğrulandı, olduğu gibi sakla.
         $name = $base . '.' . $ext;
         $dest = $targetDir . '/' . $name;
         move_uploaded_file($file['tmp_name'], $dest);
+    } elseif ($src === false) {
+        // Çözülemeyen görsel (bozuk veya sahte) kaydedilmez.
+        http_response_code(400);
+        echo json_encode(['error' => 'Görsel okunamadı; geçerli bir resim dosyası yükleyin']);
+        exit;
     } else {
         // Maksimum genişliğe küçült
         $origW = imagesx($src);

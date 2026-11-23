@@ -1,0 +1,7 @@
+# The admin password lives in config.php. PHP normally executes (and so hides)
+# it, but if PHP is ever disabled or misconfigured the file would be served as
+# plain text. Deny direct web access; the other endpoints still `require` it
+# from disk, which Apache does not block.
+<FilesMatch "^config(\.example)?\.php$">
+    Require all denied
+</FilesMatch>

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireDevAuth } from '@/lib/devAuth';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
@@ -7,6 +8,8 @@ const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'mov', 'webm'];
 const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
 export async function POST(req: NextRequest) {
+  const denied = requireDevAuth(req);
+  if (denied) return denied;
   try {
     const form = await req.formData();
     const file = form.get('file') as File | null;
@@ -14,6 +17,18 @@ export async function POST(req: NextRequest) {
     const filename = (form.get('filename') as string | null) ?? file?.name ?? 'dosya';
 
     if (!file) return NextResponse.json({ error: 'Dosya eksik' }, { status: 400 });
+
+    // Same rules as public/api/upload.php: only the panel's own media folders,
+    // and a bare filename (no path separators), so nothing can land outside public/.
+    const cleanFolder = folder.replace(/^\/+|\/+$/g, '');
+    const folderOk =
+      /^[a-zA-Z0-9/_-]+$/.test(cleanFolder) &&
+      !cleanFolder.includes('..') &&
+      ['images/archive/', 'carousel/', 'about/'].some((p) => (cleanFolder + '/').startsWith(p));
+    if (!folderOk) return NextResponse.json({ error: 'Geçersiz klasör' }, { status: 400 });
+    if (/[\\/\0]/.test(filename) || filename.includes('..')) {
+      return NextResponse.json({ error: 'Geçersiz dosya adı' }, { status: 400 });
+    }
 
     const ext = filename.split('.').pop()?.toLowerCase() ?? '';
     if (!ALLOWED_EXT.includes(ext)) {
@@ -38,11 +53,16 @@ export async function POST(req: NextRequest) {
       const isCover = /^cover\./i.test(filename);
       const maxWidth = isCover ? 960 : 1920;
       const quality = isCover ? 75 : 80;
-      // @ts-expect-error Buffer type mismatch with sharp
-      finalBuffer = await sharp(buffer)
-        .resize({ width: maxWidth, withoutEnlargement: true })
-        .webp({ quality })
-        .toBuffer();
+      try {
+        // @ts-expect-error Buffer type mismatch with sharp
+        finalBuffer = await sharp(buffer)
+          .resize({ width: maxWidth, withoutEnlargement: true })
+          .webp({ quality })
+          .toBuffer();
+      } catch {
+        // Not a decodable image (e.g. a text file renamed to .jpg): reject, like upload.php.
+        return NextResponse.json({ error: 'Görsel okunamadı; geçerli bir resim dosyası yükleyin' }, { status: 400 });
+      }
     }
 
     await writeFile(path.join(destDir, finalFilename), finalBuffer);

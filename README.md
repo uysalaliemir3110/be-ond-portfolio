@@ -72,7 +72,7 @@ npm run build      # writes out/
 Upload the contents of `out/` to `public_html/`. Two things to do once, on the server:
 
 1. Copy `api/config.example.php` to `api/config.php` and set a real password. `config.php` is gitignored — the one in this repo is a placeholder.
-2. Leave `.htaccess` and `.user.ini` in place; they wire up the 404 page and raise PHP's upload limits.
+2. Leave `.htaccess` and `.user.ini` in place; they wire up the 404 page and raise PHP's upload limits. `api/.htaccess` blocks direct web access to `config.php` — keep it uploaded.
 
 ---
 ---

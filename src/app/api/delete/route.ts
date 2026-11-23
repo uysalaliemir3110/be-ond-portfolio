@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireDevAuth } from '@/lib/devAuth';
 import { unlink } from 'fs/promises';
 import path from 'path';
 
@@ -10,6 +11,8 @@ const ALLOWED_PREFIXES = ['images/archive/', 'carousel/', 'about/'];
 const ALLOWED_EXT = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif', 'mp4', 'webm', 'mov'];
 
 export async function POST(req: NextRequest) {
+  const denied = requireDevAuth(req);
+  if (denied) return denied;
   try {
     const body = await req.json();
     const rel = String(body?.path ?? '').replace(/^\/+/, '');

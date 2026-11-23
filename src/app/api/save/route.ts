@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { requireDevAuth } from '@/lib/devAuth';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { syncAll } from '../../../../scripts/sync-data.mjs';
 
 export async function POST(req: NextRequest) {
+  const denied = requireDevAuth(req);
+  if (denied) return denied;
   try {
     const type = req.nextUrl.searchParams.get('type');
     const validTypes = ['carousel', 'carouselMobile', 'archive', 'hero', 'about'];

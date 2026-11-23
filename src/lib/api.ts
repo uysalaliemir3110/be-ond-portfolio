@@ -5,6 +5,8 @@
  * Şifre, oturum boyunca sessionStorage'da tutulur ve her istekte gönderilir.
  */
 
+import { DEMO_ADMIN_PASSWORD } from './demoPassword';
+
 const API_BASE = '/api';
 
 // True only for `next dev` (inlined at build time — this branch is compiled
@@ -31,11 +33,6 @@ function saveUrl(type: string) {
   return isDev ? `/api/save?type=${type}` : `${API_BASE}/save.php?type=${type}`;
 }
 
-// Demo-only password for this portfolio build (local dev + the public Vercel
-// copy). Deliberately NOT the real production password — this fork never
-// talks to the live cPanel/PHP backend, so the real ADMIN_PASSWORD in
-// public/api/config.php never needs to live in source control here.
-const DEV_ADMIN_PASSWORD = 'beond-portfolio-2026';
 
 const PW_KEY = 'beond_admin_pw';
 
@@ -78,7 +75,7 @@ export async function login(password: string): Promise<boolean> {
   // This portfolio build has no PHP backend to check against (the real one
   // lives only on the production cPanel host), so it always checks the
   // demo password client-side — in `next dev` and in the deployed demo.
-  return password === DEV_ADMIN_PASSWORD;
+  return password === DEMO_ADMIN_PASSWORD;
 }
 
 /** Sunucudaki güncel veriyi getirir; yoksa null döner (yerel varsayılan kullanılır). */
